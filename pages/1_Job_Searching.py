@@ -24,7 +24,9 @@ try:
 except Exception as e:
     print(e)
 
-tab1, tab2 = st.tabs(["Jobs Recommendation For Your Profile", "Apply from Resume:"])
+tab1, tab2 = st.tabs(
+    ["Jobs Recommendation For Your Profile", "Apply from Resume: Colab Only"]
+)
 
 skills_list = [
     "Python",
@@ -115,9 +117,11 @@ def calc_jacard(filtered_df, skills):
     sorted_keys = sorted(res, key=lambda k: res[k], reverse=True)[:10]
     result_df = filtered_df.loc[sorted_keys]
     if "applied_candidates" in result_df.columns:
-        result_df.drop(columns=["ext_Skills", "openings" , "applied_candidates"], inplace=True)
+        result_df.drop(
+            columns=["ext_Skills", "openings", "applied_candidates"], inplace=True
+        )
     else:
-        result_df.drop(columns=["ext_Skills", "openings" ], inplace=True)
+        result_df.drop(columns=["ext_Skills", "openings"], inplace=True)
     return (
         result_df,
         result_df["company_name"].to_list(),
@@ -172,9 +176,11 @@ with tab1:
         submitted = st.form_submit_button("Apply")
 
     if submitted and work_type and company_name:
-        user_personal_id = list(collection2.find({"name":name}))[0].get("personal_id", 15)
+        user_personal_id = list(collection2.find({"name": name}))[0].get(
+            "personal_id", 15
+        )
         print(user_personal_id)
-            
+
         collection.update_one(
             {
                 "company_name": company_name,
@@ -192,4 +198,38 @@ with tab1:
 
 
 with tab2:
-    name = st.text_input("Movie title", "Life of Brian")
+    from IPython.display import HTML
+    import nbformat
+    from nbconvert import HTMLExporter
+
+    # Load the Colab notebook file
+    colab_notebook_file = "notebooks/SPACY_RESUME.ipynb"
+    with open(colab_notebook_file, "r", encoding="utf8") as f:
+        nb_content = nbformat.read(f, as_version=4)
+
+    # Convert the notebook to HTML
+    html_exporter = HTMLExporter()
+    html_content, _ = html_exporter.from_notebook_node(nb_content)
+
+    # Display the Colab content in Streamlit
+    st.title("Google Colab in Streamlit")
+    st.write(
+        """
+        To address the time constraints, we can extend the keyword extraction approach to automatically extract keywords from uploaded resume documents. The procedure will mirror the steps used in the keyword approach. Due to these limitations, we'll refrain from employing Colab for simulating keyword extraction from resumes.
+
+        Here's an outline of the modified procedure:
+
+        1. **Upload Resumes**: Allow users to upload their resume documents to the Streamlit app.
+
+        2. **Keyword Extraction**: Implement an automated keyword extraction process that analyzes the uploaded resumes and extracts relevant keywords. This can involve techniques like natural language processing (NLP) and text mining.
+
+        3. **Keyword Analysis**: Once the keywords are extracted, proceed with the same analysis steps as in the initial keyword approach. You can generate word clouds, calculate keyword frequencies, and use these insights to understand the skills and experiences highlighted in the resumes.
+
+        4. **Display Insights**: Present the keyword-based insights to the user through Streamlit's interactive visualizations and text displays.
+
+        Remember that automated keyword extraction might not be perfect and can vary depending on the complexity of the resumes and the quality of the extraction techniques used. It's recommended to fine-tune and validate the keyword extraction process to ensure accurate results.
+
+        With this approach, you can provide users with a more streamlined experience, enabling them to quickly understand the key skills and experiences highlighted in their uploaded resumes. 
+             """
+    )
+    st.components.v1.html(html_content, height=8000)
