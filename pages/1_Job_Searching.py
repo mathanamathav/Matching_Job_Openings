@@ -114,7 +114,7 @@ def calc_jacard(filtered_df, skills):
 
     sorted_keys = sorted(res, key=lambda k: res[k], reverse=True)[:10]
     result_df = filtered_df.loc[sorted_keys]
-    result_df.drop(columns=["ext_Skills", "openings"], inplace=True)
+    result_df.drop(columns=["ext_Skills", "openings" , "applied_candidates"], inplace=True)
     return (
         result_df,
         result_df["company_name"].to_list(),
