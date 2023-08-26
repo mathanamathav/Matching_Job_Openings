@@ -6,7 +6,8 @@
 - [X] The application needs to possess a functional user interface.
 - [X] Possible ideas to extend this idea
 
-### Approach notes : https://docs.google.com/document/d/1Rjxll6TXA8Ult5KH3HR7SAtuM7VwE_xzJLUdhw6nLW8/edit?usp=sharing
+### Video-link-presentation : https://drive.google.com/drive/folders/1jwL5wvgBTuGLV_VtrUZrZ2bm_psSIlyN?usp=drive_link
+### Approach-notes : https://docs.google.com/document/d/1Rjxll6TXA8Ult5KH3HR7SAtuM7VwE_xzJLUdhw6nLW8/edit?usp=sharing
 
 ### Application screen shots:
 ![Screenshot 2023-08-26 181221](https://github.com/mathanamathav/Matching_Job_Openings/assets/62739618/8e811f74-301b-4a7c-9b92-90ed649829f1)
