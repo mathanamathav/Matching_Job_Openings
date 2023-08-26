@@ -18,13 +18,13 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
     db = client["Hackathon"]
     collection = db["Company"]
-    collection2 = db["people"]
+    collection2 = db["People"]
 
 
 except Exception as e:
     print(e)
 
-tab1, tab2 = st.tabs(["Jobs Recommendation For Your Profile", "Enter Your Skill Set"])
+tab1, tab2 = st.tabs(["Jobs Recommendation For Your Profile", "Apply from Resume:"])
 
 skills_list = [
     "Python",
@@ -114,7 +114,10 @@ def calc_jacard(filtered_df, skills):
 
     sorted_keys = sorted(res, key=lambda k: res[k], reverse=True)[:10]
     result_df = filtered_df.loc[sorted_keys]
-    result_df.drop(columns=["ext_Skills", "openings" , "applied_candidates"], inplace=True)
+    if "applied_candidates" in result_df.columns:
+        result_df.drop(columns=["ext_Skills", "openings" , "applied_candidates"], inplace=True)
+    else:
+        result_df.drop(columns=["ext_Skills", "openings" ], inplace=True)
     return (
         result_df,
         result_df["company_name"].to_list(),
@@ -169,14 +172,16 @@ with tab1:
         submitted = st.form_submit_button("Apply")
 
     if submitted and work_type and company_name:
-        number = random.randint(1, 10000)
+        user_personal_id = list(collection2.find({"name":name}))[0].get("personal_id", 15)
+        print(user_personal_id)
+            
         collection.update_one(
             {
                 "company_name": company_name,
                 "openings.work_type": work_type[0],
                 "openings.experience": {"$lte": experience},
             },
-            {"$push": {"openings.applied_candidates": number}},
+            {"$push": {"openings.applied_candidates": user_personal_id}},
         )
         collection2.update_one(
             {
@@ -184,7 +189,6 @@ with tab1:
             },
             {"$push": {"applied_company": company_name}},
         )
-        print(number)
 
 
 with tab2:
