@@ -18,6 +18,8 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
     db = client["Hackathon"]
     collection = db["Company"]
+    collection2 = db["people"]
+
 
 except Exception as e:
     print(e)
@@ -122,7 +124,7 @@ def calc_jacard(filtered_df, skills):
 
 with tab1:
     with st.form("my_form"):
-        name = st.text_input("Name", "mathan")
+        name = st.text_input("Name", "Carmine")
         experience = int(st.text_input("Work Experience", "5"))
 
         work_type = st.multiselect(
@@ -170,11 +172,17 @@ with tab1:
         number = random.randint(1, 10000)
         collection.update_one(
             {
-                "company_name": "InnoZ",
+                "company_name": company_name,
                 "openings.work_type": work_type[0],
                 "openings.experience": {"$lte": experience},
             },
             {"$push": {"openings.applied_candidates": number}},
+        )
+        collection2.update_one(
+            {
+                "name": name,
+            },
+            {"$push": {"applied_company": company_name}},
         )
         print(number)
 
