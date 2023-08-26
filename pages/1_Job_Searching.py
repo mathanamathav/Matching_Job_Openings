@@ -129,72 +129,87 @@ def calc_jacard(filtered_df, skills):
     )
 
 
+def update_data(user_personal_id, company_name, work_type, experience):
+    print(user_personal_id)
+
+    collection.update_one(
+        {
+            "company_name": company_name,
+            "openings.work_type": work_type[0],
+            "openings.experience": {"$lte": experience},
+        },
+        {"$push": {"openings.applied_candidates": user_personal_id}},
+    )
+    collection2.update_one(
+        {
+            "name": name,
+        },
+        {"$push": {"applied_company": company_name}},
+    )
+
+
 with tab1:
-    with st.form("my_form"):
-        name = st.text_input("Name", "Carmine")
-        experience = int(st.text_input("Work Experience", "5"))
+    name = st.text_input("Name", "Bartlet")
 
-        work_type = st.multiselect(
-            "work type",
-            ["remote", "on-site", "hybrid"],
-            max_selections=1,
-            label_visibility="visible",
-        )
-        skills = st.multiselect(
-            "Skills", skills_list, max_selections=10, label_visibility="visible"
-        )
+    button_clicked = st.button("Search")
+    if button_clicked:
+        query_res = list(collection2.find({"name": name}))[0]
 
-        if work_type and experience and skills:
-            query = {
-                "openings.work_type": work_type[0],
-                "openings.experience": {"$lte": experience},
-                # "openings.skills": {
-                #     "$all": skills
-                # }
-            }
-            matching_documents = collection.find(query)
-            documents = list(matching_documents)
-            jd = pd.DataFrame(documents)
+        if query_res:
+            user_personal_id = query_res.get("personal_id", 15)
 
-            jd.drop(columns=["_id"], inplace=True)
-            jd["Skills"] = jd["openings"].apply(lambda x: x["skills"])
-            jd["Job_Title"] = jd["openings"].apply(lambda x: x["name"])
-            jd["Experience"] = jd["openings"].apply(lambda x: x["experience"])
-            jd["Type"] = jd["openings"].apply(lambda x: x["work_type"])
-            jd["location"] = jd["openings"].apply(lambda x: x["location"])
-            jd["pay"] = jd["openings"].apply(lambda x: x["pay"])
-            jd["Skills"] = jd["Skills"].apply(skills_to_string)
+            experience = int(st.text_input("Work Experience", "5"))
 
-            jd["ext_Skills"] = jd["Skills"].apply(skills_to_string)
-            jobs_df, company, job_title = calc_jacard(jd, skills)
+            work_type = st.multiselect(
+                "work type",
+                ["remote", "on-site", "hybrid"],
+                max_selections=1,
+                label_visibility="visible",
+                default=query_res.get("Work-type", "remote"),
+            )
+            skills = st.multiselect(
+                "Skills",
+                skills_list,
+                max_selections=10,
+                label_visibility="visible",
+                default=query_res.get("Skills"),
+            )
 
-            st.table(jobs_df)
+            if work_type and experience and skills:
+                query = {
+                    "openings.work_type": work_type[0],
+                    "openings.experience": {"$lte": experience},
+                    # "openings.skills": {
+                    #     "$all": skills
+                    # }
+                }
+                matching_documents = collection.find(query)
+                documents = list(matching_documents)
+                jd = pd.DataFrame(documents)
 
-            company_name = st.selectbox("company", company, label_visibility="visible")
-            st.write("You selected:", company_name)
+                jd.drop(columns=["_id"], inplace=True)
+                jd["Skills"] = jd["openings"].apply(lambda x: x["skills"])
+                jd["Job_Title"] = jd["openings"].apply(lambda x: x["name"])
+                jd["Experience"] = jd["openings"].apply(lambda x: x["experience"])
+                jd["Type"] = jd["openings"].apply(lambda x: x["work_type"])
+                jd["location"] = jd["openings"].apply(lambda x: x["location"])
+                jd["pay"] = jd["openings"].apply(lambda x: x["pay"])
+                jd["Skills"] = jd["Skills"].apply(skills_to_string)
 
-        submitted = st.form_submit_button("Apply")
+                jd["ext_Skills"] = jd["Skills"].apply(skills_to_string)
+                jobs_df, company, job_title = calc_jacard(jd, skills)
 
-    if submitted and work_type and company_name:
-        user_personal_id = list(collection2.find({"name": name}))[0].get(
-            "personal_id", 15
-        )
-        print(user_personal_id)
+                st.table(jobs_df)
 
-        collection.update_one(
-            {
-                "company_name": company_name,
-                "openings.work_type": work_type[0],
-                "openings.experience": {"$lte": experience},
-            },
-            {"$push": {"openings.applied_candidates": user_personal_id}},
-        )
-        collection2.update_one(
-            {
-                "name": name,
-            },
-            {"$push": {"applied_company": company_name}},
-        )
+                company_name = st.text_input("company", company[0])
+                st.write("You selected:", company_name)
+
+                submitted = st.button(
+                    "Applied",
+                    on_click=update_data(
+                        user_personal_id, company_name, work_type, experience
+                    ),
+                )
 
 
 with tab2:
