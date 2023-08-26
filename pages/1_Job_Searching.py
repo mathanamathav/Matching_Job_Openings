@@ -3,6 +3,7 @@ import streamlit as st
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import pandas as pd
+import random
 
 st.set_page_config(
     page_title="JOB Searching",
@@ -133,49 +134,50 @@ with tab1:
         skills = st.multiselect(
             "Skills", skills_list, max_selections=10, label_visibility="visible"
         )
-        submitted = st.form_submit_button("Submit")
 
-    if submitted and skills and work_type:
-        query = {
-            "openings.work_type": work_type[0],
-            "openings.experience": {"$lte": experience},
-            # "openings.skills": {
-            #     "$all": skills
-            # }
-        }
-        matching_documents = collection.find(query)
-        documents = list(matching_documents)
-        jd = pd.DataFrame(documents)
-
-        jd.drop(columns=["_id"], inplace=True)
-        jd["Skills"] = jd["openings"].apply(lambda x: x["skills"])
-        jd["Job_Title"] = jd["openings"].apply(lambda x: x["name"])
-        jd["Experience"] = jd["openings"].apply(lambda x: x["experience"])
-        jd["Type"] = jd["openings"].apply(lambda x: x["work_type"])
-        jd["location"] = jd["openings"].apply(lambda x: x["location"])
-        jd["pay"] = jd["openings"].apply(lambda x: x["pay"])
-        jd["Skills"] = jd["Skills"].apply(skills_to_string)
-
-        jd["ext_Skills"] = jd["Skills"].apply(skills_to_string)
-        jobs_df, company, job_title = calc_jacard(jd, skills)
-
-        st.table(jobs_df)
-
-        with st.form("my_form_2"):
-            company_name = st.selectbox("company", company, label_visibility="visible")
-            st.write("You selected:", company_name)
-
-            apply = st.form_submit_button("apply")
-
-        if apply and company_name:
-            print("here")
+        if work_type and experience and skills:
             query = {
                 "openings.work_type": work_type[0],
                 "openings.experience": {"$lte": experience},
-                "company_name": company_name,
+                # "openings.skills": {
+                #     "$all": skills
+                # }
             }
             matching_documents = collection.find(query)
-            st.success("Applied", icon="✅")
+            documents = list(matching_documents)
+            jd = pd.DataFrame(documents)
+
+            jd.drop(columns=["_id"], inplace=True)
+            jd["Skills"] = jd["openings"].apply(lambda x: x["skills"])
+            jd["Job_Title"] = jd["openings"].apply(lambda x: x["name"])
+            jd["Experience"] = jd["openings"].apply(lambda x: x["experience"])
+            jd["Type"] = jd["openings"].apply(lambda x: x["work_type"])
+            jd["location"] = jd["openings"].apply(lambda x: x["location"])
+            jd["pay"] = jd["openings"].apply(lambda x: x["pay"])
+            jd["Skills"] = jd["Skills"].apply(skills_to_string)
+
+            jd["ext_Skills"] = jd["Skills"].apply(skills_to_string)
+            jobs_df, company, job_title = calc_jacard(jd, skills)
+
+            st.table(jobs_df)
+
+            company_name = st.selectbox("company", company, label_visibility="visible")
+            st.write("You selected:", company_name)
+
+        submitted = st.form_submit_button("Apply")
+
+    if submitted and work_type and company_name:
+        number = random.randint(1, 10000)
+        collection.update_one(
+            {
+                "company_name": "InnoZ",
+                "openings.work_type": work_type[0],
+                "openings.experience": {"$lte": experience},
+            },
+            {"$push": {"openings.applied_candidates": number}},
+        )
+        print(number)
+
 
 with tab2:
     name = st.text_input("Movie title", "Life of Brian")
